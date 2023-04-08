@@ -1,27 +1,43 @@
 package com.example.demo.controllers;
 
-import com.example.demo.models.InMemoryUserRepository;
 import com.example.demo.models.User;
-import com.example.demo.models.UserRepository;
+import com.example.demo.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
     UserRepository repository;
 
-    public UserController() {
-        repository = new InMemoryUserRepository();
-        repository.createUser(new User(1, "Bk", 20));
-        repository.createUser(new User(2, "peppy", 27));
+    // Dependency injection - DI
+    public UserController(UserRepository repository) {
+        this.repository = repository;
     }
 
     @GetMapping
-    public List<User> getUsers(@RequestParam(name = "name", required = false) String name) {
-        return repository.getUsers(name);
+    public ResponseEntity<List<User>> getUsers(@RequestParam(name = "name", required = false) String name) {
+        try {
+            return new ResponseEntity(
+                    repository.getUsers(null)
+                            .stream()
+                            .filter(user -> name == null || user.getName().equals(name))
+                            .toList(),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity(
+                    Map.of(
+                            "message", "There was an internal server error. Please try again",
+                            "status", HttpStatus.INTERNAL_SERVER_ERROR
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
     @GetMapping("/{id}")
