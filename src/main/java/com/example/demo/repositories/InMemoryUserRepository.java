@@ -1,5 +1,6 @@
-package com.example.demo.models;
+package com.example.demo.repositories;
 
+import com.example.demo.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
