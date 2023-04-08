@@ -1,101 +1,59 @@
 package com.example.demo.controllers;
+
+import com.example.demo.models.InMemoryUserRepository;
 import com.example.demo.models.User;
-import org.springframework.http.HttpStatus;
+import com.example.demo.models.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    List<User> users = new ArrayList<User>();
+    UserRepository repository;
 
     public UserController() {
-        users.add(new User(1, "bk", 21));
-        users.add(new User(2, "peppy", 27));
-        users.add(new User(4, "Aman", 24));
+        repository = new InMemoryUserRepository();
+        repository.createUser(new User(1, "Bk", 20));
+        repository.createUser(new User(2, "peppy", 27));
     }
 
-    @GetMapping()
+    @GetMapping
     public List<User> getUsers(@RequestParam(name = "name", required = false) String name) {
-        List<User> foundUsers = new ArrayList<>();
-        if (name == null) {
-            return users;
-        }
-        for (User user : users) {
-            if (user.getName().equals(name)) {
-                foundUsers.add(user);
-            }
-        }
-        return foundUsers;
+        return repository.getUsers(name);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getUserById(@PathVariable("id") int id) { // path variable is included in URL
-        User foundUser = null;
-        for (User user : users) {
-            if (user.getId() == id) {
-                foundUser = user;
-            }
-        }
-        if (foundUser == null) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity(foundUser, HttpStatus.OK);
+    public ResponseEntity getUserById(@PathVariable("id") int id) {
+        return repository.getUserById(id);
     }
 
-    @PostMapping// POST requests are used to send data to the API server to create
+    // @GetMapping("/{age}")
+    // How would the http request know that its an age that i am looking for and not an ID
+    @PostMapping
     public ResponseEntity createUser(@RequestBody User user) {
-        if (user.getId() == 0 || user.getAge() == 0 || user.getName() == null) { // user information must be valid
-            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
-        }
-        for (User users : users) { // ID can not already exist
-            if (users.getId() == user.getId()) {
-                return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
-            }
-        }
-        users.add(user);
-        return new ResponseEntity(HttpStatus.CREATED);
+        return repository.createUser(user);
     }
 
-    @PutMapping // PUT requests are used to send data to the API to update
+    @PutMapping
     public ResponseEntity updateUser(@RequestBody User user) {
-        if (user.getId() == 0 || user.getAge() == 0 || user.getName() == null) { // user information must be valid
-            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
-        }
-        for (User users : users) {
-            if (users.getId() == user.getId()) {
-                users.setName(user.getName());
-                users.setAge(user.getAge());
-            }
-        }
-        return new ResponseEntity(HttpStatus.CREATED);
+        return repository.updateUser(user);
     }
-
 
     @DeleteMapping
     public ResponseEntity deleteUser(@RequestBody User user) { // delete user given the user object
-        for(User u: users) {
-            if (u.getId() == user.getId()) {
-                users.remove(u);
-                return new ResponseEntity(HttpStatus.ACCEPTED);
-            }
-        }
-        return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        return repository.deleteUser(user);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteUserById(@PathVariable("id") int id){ // delete by path using id as a variable
-        for(User u: users) {
-            if (u.getId() == id) {
-                users.remove(u);
-                return new ResponseEntity(HttpStatus.ACCEPTED);
-            }
-        }
-        return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+    public ResponseEntity deleteUserById(@PathVariable("id") int id) { // delete by path using id as a variable
+        return repository.deleteUserById(id);
     }
-
-
 }
+
+
+
+
+
+
